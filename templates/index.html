@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+  <title>slvtcrvsher</title>
+  <style>
+    body {
+      background-color: black;
+      color: violet;
+      font-family: mono;
+  }
+
+  
+  table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      padding: 10px;
+    }
+
+    th:first-child {
+      width: 40%;
+    }
+
+    th:nth-child(2) {
+      width: 30%;
+    }
+
+    th:nth-child(3) {
+      width: 15%;
+    }
+
+    th:nth-child(4) {
+      width: 15%;
+    }
+
+
+  .rate-btn {
+    display: inline-block;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+    width: 30px;
+    text-align: center;
+  }
+
+  .ratebtn-add {
+    background-color: #28a745;
+  }
+
+  .ratebtn-remove {
+    background-color: #dc3545;
+  }
+  .heading {
+      text-align: center;
+    }
+    
+    .song-title,
+    .album-name,
+    .rating,
+    .action-buttons {
+      text-align: center;
+    }
+    #searchInput {
+    margin: 0 auto;
+    display: block;
+}
+
+  </style>
+</head>
+<body>
+  <h1 class="heading">slvtcrvsher song survey</h1>
+  <input type="text" class="heading" id="searchInput" placeholder="Search...">
+  <div id="errorMessage" style="color: red;"></div>
+
+  <table id="tracksData">
+    <tr>
+      <th>Song</th>
+      <th>Album</th>
+      <th>Rating</th>
+      <th>Actions</th>
+    </tr>
+    {{range .Songs}}
+    <tr>
+      <td class="song-title">
+        <div title="{{.Title}}">{{.Title}}</div>
+      </td>
+      <td class="album-name">
+        <div title="{{.Album}}">{{.Album}}</div>
+      </td>
+      <td class="rating">{{.Rating}}</td>
+      <td class="action-buttons">
+        <button class="rate-btn ratebtn-add" onclick="rateSong('{{.ID}}', 'add')">+</button>
+        <button class="rate-btn ratebtn-remove" onclick="rateSong('{{.ID}}', 'remove')">-</button>
+      </td>
+    </tr>
+    {{end}}
+  </table>
+
+
+  <script>
+    function displayError(message) {
+    var errorMessage = document.getElementById('errorMessage');
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+  }
+
+  function rateSong(songID, action) {
+    // Create a new FormData object
+    var formData = new FormData();
+    formData.append("id", songID);
+    formData.append("action", action);
+
+    // Make an AJAX request to update the rating
+    fetch("/rate", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === "error") {
+        displayError("An error occurred. Please try again.");
+      } else if (data.message === "Rating updated successfully") {
+        displayError("Success.");
+        
+
+      } else {
+        displayError("You can only vote on a song once per day.");
+      }
+    })
+    .catch(error => {
+      displayError("An error occurred. Please try again.");
+      console.error('Error:', error);
+    });
+  }
+
+  const tracksTable = document.getElementById('tracksData');
+const searchInput = document.getElementById('searchInput');
+const allTracks = Array.from(tracksTable.getElementsByTagName('tr')).slice(1);
+
+function filterTracks(searchTerm) {
+  const filteredTracks = allTracks.filter(trackRow => {
+    const trackTitle = trackRow.getElementsByClassName('song-title')[0].textContent.toLowerCase();
+    const trackAlbum = trackRow.getElementsByClassName('album-name')[0].textContent.toLowerCase();
+    return trackTitle.includes(searchTerm) || trackAlbum.includes(searchTerm);
+  });
+
+  allTracks.forEach(trackRow => {
+    trackRow.style.display = filteredTracks.includes(trackRow) ? '' : 'none';
+  });
+}
+
+searchInput.addEventListener('input', function () {
+  const searchTerm = searchInput.value.toLowerCase();
+  filterTracks(searchTerm);
+});
+  </script>
+</body>
+</html>
