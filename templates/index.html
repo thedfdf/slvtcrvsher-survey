@@ -111,12 +111,10 @@
   }
 
   function rateSong(songID, action) {
-    // Create a new FormData object
     var formData = new FormData();
     formData.append("id", songID);
     formData.append("action", action);
 
-    // Make an AJAX request to update the rating
     fetch("/rate", {
       method: "POST",
       body: formData
